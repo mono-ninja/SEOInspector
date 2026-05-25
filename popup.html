@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEOInspector</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+<div class="header">
+    <span class="logo"><img src="icons/logo.svg" class="logo-svg"> SEOInspector</span>
+    <div class="header-actions">
+        <button id="btn-refresh" data-i18n="popup.btn.refresh.title" title="">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button>
+        <button id="btn-theme" data-i18n="popup.btn.theme.title" title="">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button id="btn-history" data-i18n="popup.btn.history.title" title="">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </button>
+        <div class="header-more">
+            <button id="btn-more" data-i18n="popup.btn.more.title" title="">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </button>
+            <div id="more-dropdown" class="more-dropdown hidden">
+                <button class="more-dropdown-item" id="btn-export" data-i18n="popup.export.html">↓ HTML Report</button>
+                <button class="more-dropdown-item" id="btn-export-csv">⊞ CSV</button>
+                <button class="more-dropdown-item" id="btn-export-json">{ } JSON</button>
+                <button class="more-dropdown-item" id="btn-copy-issues" data-i18n="popup.copy_issues">⎘ Copy issues</button>
+                <button class="more-dropdown-item" id="btn-print" data-i18n="popup.export.print">⎙ Print / PDF</button>
+            </div>
+        </div>
+        <button id="btn-lang" class="btn-icon" data-i18n="popup.btn.lang.title" title="">EN</button>
+        <button id="btn-options" data-i18n="popup.btn.options.title" title="">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+    </div>
+</div>
+
+<div id="url-bar" title=""></div>
+
+<div id="summary-bar" class="hidden">
+  <div class="health-left">
+    <div id="health-status"></div>
+    <div class="health-total-wrap">
+      <span id="total-count" class="health-total">0</span>
+      <span class="health-total-label" data-i18n="popup.health.total_label">проблем</span>
+    </div>
+  </div>
+  <div class="health-right">
+    <div class="health-bar">
+      <div id="bar-critical" class="health-bar-segment health-bar-critical"></div>
+      <div id="bar-warning" class="health-bar-segment health-bar-warning"></div>
+      <div id="bar-notice" class="health-bar-segment health-bar-notice"></div>
+      <div id="bar-good" class="health-bar-segment health-bar-good"></div>
+    </div>
+    <div class="stat-cards">
+      <div class="stat-card cr" data-sev="critical">
+        <div class="stat-card-info">
+          <div class="stat-lbl" data-i18n="popup.sev.critical">Критичні</div>
+          <div class="stat-sub" data-i18n="popup.stat.critical_sub">Виправити негайно</div>
+        </div>
+        <div class="stat-num" id="stat-num-critical">0</div>
+      </div>
+      <div class="stat-card wr" data-sev="warning">
+        <div class="stat-card-info">
+          <div class="stat-lbl" data-i18n="popup.sev.warning">Попередження</div>
+          <div class="stat-sub" data-i18n="popup.stat.warning_sub">Слід виправити</div>
+        </div>
+        <div class="stat-num" id="stat-num-warning">0</div>
+      </div>
+      <div class="stat-card nt" data-sev="notice">
+        <div class="stat-card-info">
+          <div class="stat-lbl" data-i18n="popup.sev.notice">Нотатки</div>
+          <div class="stat-sub" data-i18n="popup.stat.notice_sub">Варто розглянути</div>
+        </div>
+        <div class="stat-num" id="stat-num-notice">0</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="main-layout">
+
+    <!-- Sidebar navigation -->
+    <nav id="sidebar">
+        <div id="sidebar-local-section">
+            <div class="sidebar-search-wrap">
+                <input type="text" id="sidebar-search" class="sidebar-search" data-i18n="popup.sidebar.search" placeholder="Search...">
+            </div>
+            <button class="sidebar-item sidebar-all active" data-checker="all">
+                <span data-i18n="popup.sidebar.all">All</span>
+            </button>
+
+            <div id="sidebar-pinned-section" class="hidden"></div>
+
+            <button class="sidebar-group" data-group="seo">
+                <svg class="sidebar-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                <span data-i18n="popup.sidebar.group.seo">SEO</span>
+            </button>
+            <div class="sidebar-group-items" id="group-items-seo">
+                <button class="sidebar-item" data-checker="seo" data-i18n="popup.sidebar.seo">SEO</button>
+                <button class="sidebar-item" data-checker="headings" data-i18n="popup.sidebar.headings">Заголовки</button>
+                <button class="sidebar-item" data-checker="opengraph" data-i18n="popup.sidebar.opengraph">OG</button>
+                <button class="sidebar-item" data-checker="og_preview" data-i18n="popup.sidebar.og_preview">OG Preview</button>
+                <button class="sidebar-item" data-checker="twitter_cards" data-i18n="popup.sidebar.twitter_cards">Twitter/X</button>
+                <button class="sidebar-item" data-checker="schema" data-i18n="popup.sidebar.schema">Схема</button>
+                <button class="sidebar-item" data-checker="schema_suggest" data-i18n="popup.sidebar.schema_suggest">Schema+</button>
+                <button class="sidebar-item" data-checker="serp" data-i18n="popup.sidebar.serp">SERP</button>
+                <button class="sidebar-item" data-checker="serp_preview" data-i18n="popup.sidebar.serp_preview">SERP Preview</button>
+                <button class="sidebar-item" data-checker="robots" data-i18n="popup.sidebar.robots">Robots</button>
+                <button class="sidebar-item" data-checker="sitemap" data-i18n="popup.sidebar.sitemap">Sitemap</button>
+
+                <button class="sidebar-item" data-checker="pagination" data-i18n="popup.sidebar.pagination">Пагінація</button>
+                <button class="sidebar-item" data-checker="urlparams" data-i18n="popup.sidebar.urlparams">URL-параметри</button>
+                <button class="sidebar-item" data-checker="canonical" data-i18n="popup.sidebar.canonical">Canonical</button>
+                <button class="sidebar-item" data-checker="security" data-i18n="popup.sidebar.security">Безпека</button>
+                <button class="sidebar-item" data-checker="security_files" data-i18n="popup.sidebar.security_files">Sensitive Files</button>
+                <button class="sidebar-item" data-checker="ip_info" data-i18n="popup.sidebar.ip_info">IP / DNS</button>
+            </div>
+
+            <button class="sidebar-group" data-group="content">
+                <svg class="sidebar-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                <span data-i18n="popup.sidebar.group.content">Контент</span>
+            </button>
+            <div class="sidebar-group-items" id="group-items-content">
+                <button class="sidebar-item" data-checker="content_quality" data-i18n="popup.sidebar.content_quality">Content Quality</button>
+                <button class="sidebar-item" data-checker="nlp" data-i18n="popup.sidebar.nlp">NLP</button>
+                <button class="sidebar-item" data-checker="toc" data-i18n="popup.sidebar.toc">TOC</button>
+                <button class="sidebar-item" data-checker="ai_visibility" data-i18n="popup.sidebar.ai_visibility">AI / E-E-A-T</button>
+                <button class="sidebar-item" data-checker="eeat" data-i18n="popup.sidebar.eeat">E-E-A-T</button>
+                <button class="sidebar-item" data-checker="semantics" data-i18n="popup.sidebar.semantics">Семантика</button>
+                <button class="sidebar-item" data-checker="hreflang" data-i18n="popup.sidebar.hreflang">Hreflang</button>
+                <button class="sidebar-item" data-checker="international" data-i18n="popup.sidebar.international">International</button>
+                <button class="sidebar-item" data-checker="localization" data-i18n="popup.sidebar.localization">i18n</button>
+            </div>
+
+            <button class="sidebar-group" data-group="technical">
+                <svg class="sidebar-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                <span data-i18n="popup.sidebar.group.technical">Технічне</span>
+            </button>
+            <div class="sidebar-group-items" id="group-items-technical">
+                <button class="sidebar-item" data-checker="techstack" data-i18n="popup.sidebar.techstack">Tech Stack</button>
+                <button class="sidebar-item" data-checker="performance" data-i18n="popup.sidebar.performance">Продуктивність</button>
+                <button class="sidebar-item" data-checker="vitals" data-i18n="popup.sidebar.vitals">Vitals</button>
+                <button class="sidebar-item" data-checker="third_party" data-i18n="popup.sidebar.third_party">Сторонні</button>
+                <button class="sidebar-item" data-checker="resource_hints" data-i18n="popup.sidebar.resource_hints">Підказки</button>
+                <button class="sidebar-item" data-checker="font_loading" data-i18n="popup.sidebar.font_loading">Fonts</button>
+                <button class="sidebar-item" data-checker="css_audit" data-i18n="popup.sidebar.css_audit">CSS</button>
+                <button class="sidebar-item" data-checker="js_seo" data-i18n="popup.sidebar.js_seo">JS SEO</button>
+                <button class="sidebar-item" data-checker="pwa" data-i18n="popup.sidebar.pwa">PWA</button>
+                <button class="sidebar-item" data-checker="headers" data-i18n="popup.sidebar.headers">Headers</button>
+                <button class="sidebar-item" data-checker="redirect_chain" data-i18n="popup.sidebar.redirect_chain">Redirects</button>
+            </div>
+
+            <button class="sidebar-group" data-group="media">
+                <svg class="sidebar-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                <span data-i18n="popup.sidebar.group.media">Медіа</span>
+            </button>
+            <div class="sidebar-group-items" id="group-items-media">
+                <button class="sidebar-item" data-checker="images" data-i18n="popup.sidebar.images">Зображення</button>
+                <button class="sidebar-item" data-checker="media" data-i18n="popup.sidebar.media">Медіа</button>
+                <button class="sidebar-item" data-checker="favicon" data-i18n="popup.sidebar.favicon">Favicon</button>
+            </div>
+
+            <button class="sidebar-group" data-group="links">
+                <svg class="sidebar-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                <span data-i18n="popup.sidebar.group.links">Посилання</span>
+            </button>
+            <div class="sidebar-group-items" id="group-items-links">
+                <button class="sidebar-item" data-checker="links" data-i18n="popup.sidebar.links">Посилання</button>
+                <button class="sidebar-item" data-checker="internal_links" data-i18n="popup.sidebar.internal_links">Internal Links</button>
+                <button class="sidebar-item" data-checker="external_links" data-i18n="popup.sidebar.external_links">Зовнішні</button>
+                <button class="sidebar-item" data-checker="broken_links" data-i18n="popup.sidebar.broken_links">Биті посилання</button>
+                <button class="sidebar-item" data-checker="link_juice" data-i18n="popup.sidebar.link_juice">Link Equity</button>
+            </div>
+
+            <button class="sidebar-group" data-group="comfort">
+                <svg class="sidebar-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                <span data-i18n="popup.sidebar.group.comfort">Зручність</span>
+            </button>
+            <div class="sidebar-group-items" id="group-items-comfort">
+                <button class="sidebar-item" data-checker="accessibility" data-i18n="popup.sidebar.accessibility">Доступність</button>
+                <button class="sidebar-item" data-checker="mobile" data-i18n="popup.sidebar.mobile">Мобільність</button>
+                <button class="sidebar-item" data-checker="analytics" data-i18n="popup.sidebar.analytics">Аналітика</button>
+                <button class="sidebar-item" data-checker="gdpr" data-i18n="popup.sidebar.gdpr">GDPR</button>
+                <button class="sidebar-item" data-checker="storage" data-i18n="popup.sidebar.storage">Storage</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Content area -->
+    <div id="content-area">
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <span data-i18n="popup.loading">Аналіз...</span>
+        </div>
+
+        <!-- Severity filter bar -->
+        <div id="filter-bar" class="hidden">
+            <div id="sev-filter" class="sev-filter-group">
+                <button class="sev-btn sev-info" data-sev="info" data-i18n="popup.sev.info">● Інфо</button>
+                <button class="sev-btn active" data-sev="all" data-i18n="popup.sev.all">Всі</button>
+                <button class="sev-btn sev-critical" data-sev="critical" data-i18n="popup.sev.critical">● Критичні</button>
+                <button class="sev-btn sev-warning" data-sev="warning" data-i18n="popup.sev.warning">● Попередження</button>
+                <button class="sev-btn sev-notice" data-sev="notice" data-i18n="popup.sev.notice">● Нотатки</button>
+            </div>
+        </div>
+
+        <div class="content-tabs hidden">
+          <button class="c-tab active" data-tab="quick-wins" data-i18n="popup.tab.quick_wins">🎯 Quick Wins</button>
+          <button class="c-tab" data-tab="all-issues" data-i18n="popup.tab.all_issues">All Issues</button>
+        </div>
+
+        <div id="results"></div>
+
+        <!-- Storage inspector panel -->
+        <div id="storage-panel" class="hidden">
+            <div id="storage-loading" class="panel-loading" data-i18n="popup.storage.loading">Завантаження...</div>
+            <div id="storage-content" class="hidden"></div>
+        </div>
+
+        <!-- HTTP Headers panel -->
+        <div id="headers-panel" class="hidden">
+            <div id="headers-loading" class="panel-loading" data-i18n="popup.headers.loading">Завантаження заголовків...</div>
+            <div id="headers-content" class="hidden"></div>
+        </div>
+
+        <!-- Broken links panel -->
+        <div id="broken-links-panel" class="hidden">
+            <div id="bl-idle">
+                <p id="bl-count-msg" class="bl-hint"></p>
+                <button id="bl-start-btn" class="bl-start-btn" data-i18n="popup.broken_links.check_btn">Перевірити посилання</button>
+            </div>
+            <div id="bl-progress" class="hidden">
+                <p class="bl-progress-label" data-i18n="popup.broken_links.checking">⏳ Перевіряю посилання...</p>
+                <div class="bl-progress-bar-wrap">
+                    <div id="bl-progress-bar" class="bl-progress-bar"></div>
+                </div>
+                <p id="bl-progress-text" class="bl-progress-text">0 / 0</p>
+            </div>
+            <div id="bl-results" class="hidden"></div>
+        </div>
+
+        <!-- Audit score history panel (local, btn-history) -->
+        <div id="audit-history-panel" class="hidden"></div>
+
+        <!-- New local panels -->
+        <div id="og-preview-panel" class="hidden"></div>
+        <div id="serp-preview-panel" class="hidden"></div>
+        <div id="robots-txt-panel" class="hidden"></div>
+
+        <div id="sitemap-panel" class="hidden"></div>
+
+        <div id="redirect-chain-panel" class="hidden"></div>
+
+        <!-- Sensitive Files panel -->
+        <div id="security-files-panel" class="hidden">
+          <div id="sf-idle">
+            <p class="sf-hint" id="sf-hint-msg"></p>
+            <button id="sf-start-btn" class="sf-start-btn" data-i18n="sf.start_btn">Run check</button>
+          </div>
+          <div id="sf-running" class="hidden">
+            <p class="sf-running-label" data-i18n="sf.running">Checking sensitive files...</p>
+            <div class="sf-progress-bar-wrap">
+              <div id="sf-progress-bar" class="sf-progress-bar"></div>
+            </div>
+            <p id="sf-running-count" class="sf-running-count"></p>
+          </div>
+          <div id="sf-results" class="hidden"></div>
+        </div>
+    </div>
+
+</div>
+
+<script src="i18n.js"></script>
+<script src="popup/lib/constants.js"></script>
+<script src="popup/lib/utils.js"></script>
+<script src="popup/state.js"></script>
+<script src="popup/ui/panel-switch.js"></script>
+<script src="popup/ui/render.js"></script>
+<script src="popup/ui/quick-wins.js"></script>
+<script src="popup/panels/helpers.js"></script>
+<script src="popup/panels/storage.js"></script>
+<script src="popup/panels/headers.js"></script>
+<script src="popup/panels/broken-links.js"></script>
+<script src="popup/panels/audit-history.js"></script>
+<script src="popup/panels/og-preview.js"></script>
+<script src="popup/panels/serp-preview.js"></script>
+<script src="popup/panels/robots-txt.js"></script>
+<script src="popup/panels/sitemap.js"></script>
+
+<script src="popup/panels/redirect-chain.js"></script>
+<script src="popup/panels/security-files.js"></script>
+<script src="popup/panels/api-fallback.js"></script>
+<script src="popup/analyze.js"></script>
+<script src="popup/export.js"></script>
+<script src="popup/app.js"></script>
+</body>
+</html>

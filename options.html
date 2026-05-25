@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEOInspector — Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="page-wrap">
+    <div class="header">
+      <span class="logo"><img src="icons/icon16.png"> SEOInspector</span>
+      <span class="header-subtitle">Settings</span>
+    </div>
+
+    <main class="content">
+      <form id="options-form">
+
+        <section class="checker-group">
+          <h2 class="group-title">Profiles</h2>
+          <div class="profiles-row">
+            <button type="button" class="profile-btn" data-profile="default">Default</button>
+            <button type="button" class="profile-btn" data-profile="blog">Blog</button>
+            <button type="button" class="profile-btn" data-profile="ecommerce">E-commerce</button>
+            <button type="button" class="profile-btn" data-profile="landing">Landing</button>
+          </div>
+        </section>
+
+        <section class="checker-group">
+          <h2 class="group-title">General</h2>
+          <label class="checker-row" for="toggle-show-badge">
+            <div class="checker-info">
+              <span class="checker-name">Show badge on icon</span>
+              <span class="checker-desc">Display critical/warning count on the extension icon after each audit</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-show-badge" data-setting="showBadge" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+        </section>
+
+        <section class="checker-group">
+          <h2 class="group-title">Core SEO</h2>
+
+          <label class="checker-row" for="toggle-seo">
+            <div class="checker-info">
+              <span class="checker-name">SEO</span>
+              <span class="checker-desc">Title, meta description, canonical, robots, content</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-seo" data-checker="seo" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-headings">
+            <div class="checker-info">
+              <span class="checker-name">Headings</span>
+              <span class="checker-desc">H1–H6: presence, hierarchy, duplicates</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-headings" data-checker="headings" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-images">
+            <div class="checker-info">
+              <span class="checker-name">Images</span>
+              <span class="checker-desc">Alt tags, dimensions, formats (WebP/AVIF), lazy loading</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-images" data-checker="images" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-semantics">
+            <div class="checker-info">
+              <span class="checker-name">HTML Semantics</span>
+              <span class="checker-desc">&lt;main&gt;, &lt;header&gt;, &lt;footer&gt;, &lt;nav&gt;, semantic blocks</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-semantics" data-checker="semantics" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-nlp">
+            <div class="checker-info">
+              <span class="checker-name">NLP / Text</span>
+              <span class="checker-desc">Word count, keyword density, sentence length</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-nlp" data-checker="nlp" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-toc">
+            <div class="checker-info">
+              <span class="checker-name">Table of Contents</span>
+              <span class="checker-desc">TOC presence, heading IDs, deep linking for long articles</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-toc" data-checker="toc" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-serp">
+            <div class="checker-info">
+              <span class="checker-name">SERP Features</span>
+              <span class="checker-desc">BreadcrumbList, WebSite schema, Title &amp; H1 match</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-serp" data-checker="serp" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-canonical">
+            <div class="checker-info">
+              <span class="checker-name">Canonical</span>
+              <span class="checker-desc">Cross-domain, HTTP on HTTPS, tracking params, noindex conflicts</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-canonical" data-checker="canonical" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+        </section>
+
+        <section class="checker-group">
+          <h2 class="group-title">Social &amp; AI</h2>
+
+          <label class="checker-row" for="toggle-opengraph">
+            <div class="checker-info">
+              <span class="checker-name">Open Graph</span>
+              <span class="checker-desc">og:title, og:description, og:image, Twitter Cards</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-opengraph" data-checker="opengraph" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-ai_visibility">
+            <div class="checker-info">
+              <span class="checker-name">AI / E-E-A-T</span>
+              <span class="checker-desc">Author, publication date, trust signals for AI &amp; Google</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-ai_visibility" data-checker="ai_visibility" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-eeat">
+            <div class="checker-info">
+              <span class="checker-name">E-E-A-T (extended)</span>
+              <span class="checker-desc">Citations, YMYL content, author credentials, social proof</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-eeat" data-checker="eeat" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-gdpr">
+            <div class="checker-info">
+              <span class="checker-name">GDPR / Consent</span>
+              <span class="checker-desc">Privacy Policy, CMP, Consent Mode v2, pre-ticked checkboxes</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-gdpr" data-checker="gdpr" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+        </section>
+
+        <section class="checker-group">
+          <h2 class="group-title">Structured Data</h2>
+
+          <label class="checker-row" for="toggle-schema">
+            <div class="checker-info">
+              <span class="checker-name">Schema (JSON-LD)</span>
+              <span class="checker-desc">Structured data validation: Article, Product, FAQ, etc.</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-schema" data-checker="schema" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-schema_suggest">
+            <div class="checker-info">
+              <span class="checker-name">Schema Suggestions</span>
+              <span class="checker-desc">Content analysis and recommendations for missing schema types</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-schema_suggest" data-checker="schema_suggest" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+        </section>
+
+        <section class="checker-group">
+          <h2 class="group-title">Technical SEO</h2>
+
+          <label class="checker-row" for="toggle-performance">
+            <div class="checker-info">
+              <span class="checker-name">Performance</span>
+              <span class="checker-desc">TTFB, blocking scripts, Google Fonts, resource count</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-performance" data-checker="performance" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-vitals">
+            <div class="checker-info">
+              <span class="checker-name">Core Web Vitals</span>
+              <span class="checker-desc">LCP, CLS, FCP from browser Performance API</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-vitals" data-checker="vitals" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-robots">
+            <div class="checker-info">
+              <span class="checker-name">Robots.txt</span>
+              <span class="checker-desc">File presence, Disallow rules, Sitemap link</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-robots" data-checker="robots" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-pagination">
+            <div class="checker-info">
+              <span class="checker-name">Pagination</span>
+              <span class="checker-desc">rel="prev"/"next", page=1 redirect, canonical, unique title</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-pagination" data-checker="pagination" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-urlparams">
+            <div class="checker-info">
+              <span class="checker-name">URL Parameters</span>
+              <span class="checker-desc">UTM without canonical, filters/sort without noindex, search pages</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-urlparams" data-checker="urlparams" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-favicon">
+            <div class="checker-info">
+              <span class="checker-name">Favicon / PWA</span>
+              <span class="checker-desc">Favicon, Apple Touch Icon, Web App Manifest, theme-color</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-favicon" data-checker="favicon" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-hreflang">
+            <div class="checker-info">
+              <span class="checker-name">Hreflang</span>
+              <span class="checker-desc">Language codes, x-default, href for multilingual sites</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-hreflang" data-checker="hreflang" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-analytics">
+            <div class="checker-info">
+              <span class="checker-name">Analytics</span>
+              <span class="checker-desc">GA4, GTM, FB Pixel, cookie consent, ecommerce dataLayer</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-analytics" data-checker="analytics" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-third_party">
+            <div class="checker-info">
+              <span class="checker-name">Third-Party Resources</span>
+              <span class="checker-desc">Number of 3rd-party domains, heavy external scripts</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-third_party" data-checker="third_party" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-resource_hints">
+            <div class="checker-info">
+              <span class="checker-name">Resource Hints</span>
+              <span class="checker-desc">preconnect, preload (as, crossorigin), above-fold images</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-resource_hints" data-checker="resource_hints" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-headers">
+            <div class="checker-info">
+              <span class="checker-name">HTTP Headers</span>
+              <span class="checker-desc">Security headers, Cache-Control, ETag, X-Powered-By, Server</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-headers" data-checker="headers" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-storage">
+            <div class="checker-info">
+              <span class="checker-name">Storage</span>
+              <span class="checker-desc">Cookies, localStorage, sessionStorage — count and size</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-storage" data-checker="storage" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+        </section>
+
+        <section class="checker-group">
+          <h2 class="group-title">Links</h2>
+
+          <label class="checker-row" for="toggle-links">
+            <div class="checker-info">
+              <span class="checker-name">Links</span>
+              <span class="checker-desc">Empty anchors, nofollow, HTTP links, generic anchor text</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-links" data-checker="links" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-external_links">
+            <div class="checker-info">
+              <span class="checker-name">External Links</span>
+              <span class="checker-desc">rel="nofollow" on external links, double slashes in URL</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-external_links" data-checker="external_links" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-internal_links">
+            <div class="checker-info">
+              <span class="checker-name">Internal Links</span>
+              <span class="checker-desc">Count, URL depth, nofollow, duplicates, target="_blank" without noopener</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-internal_links" data-checker="internal_links" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-broken_links">
+            <div class="checker-info">
+              <span class="checker-name">Broken Links</span>
+              <span class="checker-desc">Check for broken links and redirect chains (manual, up to 150 URLs)</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-broken_links" data-checker="broken_links" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-link_juice">
+            <div class="checker-info">
+              <span class="checker-name">Link Equity</span>
+              <span class="checker-desc">Internal nofollow, external link juice leak, target="_blank" without noopener</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-link_juice" data-checker="link_juice" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+        </section>
+
+        <section class="checker-group">
+          <h2 class="group-title">Usability &amp; Accessibility</h2>
+
+          <label class="checker-row" for="toggle-accessibility">
+            <div class="checker-info">
+              <span class="checker-name">Accessibility (A11y)</span>
+              <span class="checker-desc">lang attribute, form labels, video, interactive elements</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-accessibility" data-checker="accessibility" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-media">
+            <div class="checker-info">
+              <span class="checker-name">Video / iFrame</span>
+              <span class="checker-desc">iframe title, YouTube lazy/nocookie, video captions, autoplay, preload</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-media" data-checker="media" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-mobile">
+            <div class="checker-info">
+              <span class="checker-name">Mobile</span>
+              <span class="checker-desc">Viewport scaling, font-size, fixed-width layout</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-mobile" data-checker="mobile" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-localization">
+            <div class="checker-info">
+              <span class="checker-name">Localization</span>
+              <span class="checker-desc">lang format, dir for RTL, international phone format</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-localization" data-checker="localization" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-international">
+            <div class="checker-info">
+              <span class="checker-name">International SEO</span>
+              <span class="checker-desc">Language switcher, hreflang reciprocity, currency, units, contact signals</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-international" data-checker="international" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-security">
+            <div class="checker-info">
+              <span class="checker-name">Security</span>
+              <span class="checker-desc">HTTP vs HTTPS, mixed content, exposed emails, CMS version</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-security" data-checker="security" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-security_files">
+            <div class="checker-info">
+              <span class="checker-name">Sensitive Files</span>
+              <span class="checker-desc">Checks for exposed .env, xmlrpc.php, .git, backups, config files (HEAD + POST)</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-security_files" data-checker="security_files" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+
+          <label class="checker-row" for="toggle-ip_info">
+            <div class="checker-info">
+              <span class="checker-name">IP / DNS</span>
+              <span class="checker-desc">DNS A/AAAA records, IPv6, single A record</span>
+            </div>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="toggle-ip_info" data-checker="ip_info" class="toggle-input" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+        </section>
+
+        <section class="checker-group" id="section-custom-security-files">
+          <h2 class="group-title">Custom Sensitive Files</h2>
+          <p class="section-desc">Add custom paths to check in addition to the built-in list. Changes are saved immediately.</p>
+
+          <div id="custom-files-list"></div>
+
+          <div class="custom-file-form">
+            <div class="cf-row">
+              <input type="text" id="cf-path" class="cf-input cf-input-path" placeholder="/path/to/file.php" autocomplete="off" spellcheck="false">
+              <select id="cf-method" class="cf-select">
+                <option value="HEAD">HEAD</option>
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+              </select>
+              <select id="cf-severity" class="cf-select">
+                <option value="critical">Critical</option>
+                <option value="warning">Warning</option>
+                <option value="notice">Notice</option>
+              </select>
+            </div>
+            <div class="cf-row">
+              <input type="text" id="cf-label" class="cf-input cf-input-label" placeholder="Label (optional)" autocomplete="off">
+              <input type="text" id="cf-desc" class="cf-input cf-input-desc" placeholder="Description (optional)" autocomplete="off">
+            </div>
+            <div class="cf-row" id="cf-body-row" style="display:none">
+              <textarea id="cf-body" class="cf-textarea" placeholder="POST body (optional)" rows="2" spellcheck="false"></textarea>
+              <input type="text" id="cf-content-type" class="cf-input cf-input-ct" placeholder="Content-Type" value="application/x-www-form-urlencoded" autocomplete="off">
+            </div>
+            <button type="button" id="btn-add-custom-file" class="btn-add-cf">+ Add file</button>
+          </div>
+        </section>
+
+        <section class="checker-group">
+          <h2 class="group-title">Analysis Parameters</h2>
+
+          <div class="params-cat-label">Core SEO</div>
+          <div class="param-row">
+            <span class="param-name">Title: min length</span>
+            <div class="param-control">
+              <input type="number" id="p-title_min" data-param="title_min" min="1" max="200">
+              <span class="param-unit">chars</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">Title: max length</span>
+            <div class="param-control">
+              <input type="number" id="p-title_max" data-param="title_max" min="1" max="500">
+              <span class="param-unit">chars</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">Description: min length</span>
+            <div class="param-control">
+              <input type="number" id="p-desc_min" data-param="desc_min" min="1" max="500">
+              <span class="param-unit">chars</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">Description: max length</span>
+            <div class="param-control">
+              <input type="number" id="p-desc_max" data-param="desc_max" min="1" max="1000">
+              <span class="param-unit">chars</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">Min word count per page</span>
+            <div class="param-control">
+              <input type="number" id="p-min_words" data-param="min_words" min="1" max="5000">
+              <span class="param-unit">words</span>
+            </div>
+          </div>
+
+          <div class="params-cat-label">NLP / Text</div>
+          <div class="param-row">
+            <span class="param-name">Max keyword density</span>
+            <div class="param-control">
+              <input type="number" id="p-keyword_density" data-param="keyword_density" min="1" max="50" step="0.5">
+              <span class="param-unit">%</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">Max avg sentence length</span>
+            <div class="param-control">
+              <input type="number" id="p-max_sentence_words" data-param="max_sentence_words" min="5" max="100">
+              <span class="param-unit">words</span>
+            </div>
+          </div>
+
+          <div class="params-cat-label">Headings</div>
+          <div class="param-row">
+            <span class="param-name">Max heading length (H1–H6)</span>
+            <div class="param-control">
+              <input type="number" id="p-max_heading_len" data-param="max_heading_len" min="20" max="500">
+              <span class="param-unit">chars</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">Max number of H2</span>
+            <div class="param-control">
+              <input type="number" id="p-max_h2" data-param="max_h2" min="1" max="100">
+              <span class="param-unit">count</span>
+            </div>
+          </div>
+
+          <div class="params-cat-label">Performance</div>
+          <div class="param-row">
+            <span class="param-name">TTFB: warning threshold</span>
+            <div class="param-control">
+              <input type="number" id="p-ttfb_warning" data-param="ttfb_warning" min="50" max="5000">
+              <span class="param-unit">ms</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">TTFB: critical threshold</span>
+            <div class="param-control">
+              <input type="number" id="p-ttfb_critical" data-param="ttfb_critical" min="100" max="10000">
+              <span class="param-unit">ms</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">DOMContentLoaded: threshold</span>
+            <div class="param-control">
+              <input type="number" id="p-dcl_warning" data-param="dcl_warning" min="500" max="30000">
+              <span class="param-unit">ms</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">Page load time: threshold</span>
+            <div class="param-control">
+              <input type="number" id="p-load_warning" data-param="load_warning" min="500" max="60000">
+              <span class="param-unit">ms</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">Max &lt;script&gt; tags</span>
+            <div class="param-control">
+              <input type="number" id="p-max_scripts" data-param="max_scripts" min="1" max="200">
+              <span class="param-unit">count</span>
+            </div>
+          </div>
+
+          <div class="params-cat-label">Core Web Vitals</div>
+          <div class="param-row">
+            <span class="param-name">LCP: warning threshold</span>
+            <div class="param-control">
+              <input type="number" id="p-lcp_warning" data-param="lcp_warning" min="500" max="10000">
+              <span class="param-unit">ms</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">LCP: critical threshold</span>
+            <div class="param-control">
+              <input type="number" id="p-lcp_critical" data-param="lcp_critical" min="500" max="20000">
+              <span class="param-unit">ms</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">CLS: warning threshold (×0.01)</span>
+            <div class="param-control">
+              <input type="number" id="p-cls_warning" data-param="cls_warning" min="1" max="100">
+              <span class="param-unit">= 0.10</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">CLS: critical threshold (×0.01)</span>
+            <div class="param-control">
+              <input type="number" id="p-cls_critical" data-param="cls_critical" min="1" max="100">
+              <span class="param-unit">= 0.25</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">FCP: warning threshold</span>
+            <div class="param-control">
+              <input type="number" id="p-fcp_warning" data-param="fcp_warning" min="500" max="10000">
+              <span class="param-unit">ms</span>
+            </div>
+          </div>
+
+          <div class="params-cat-label">Images</div>
+          <div class="param-row">
+            <span class="param-name">Heavy image threshold</span>
+            <div class="param-control">
+              <input type="number" id="p-heavy_image_kb" data-param="heavy_image_kb" min="10" max="10000">
+              <span class="param-unit">KB</span>
+            </div>
+          </div>
+
+          <div class="params-cat-label">Links</div>
+          <div class="param-row">
+            <span class="param-name">Max links per page</span>
+            <div class="param-control">
+              <input type="number" id="p-max_links" data-param="max_links" min="10" max="1000">
+              <span class="param-unit">count</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">Max nofollow link ratio</span>
+            <div class="param-control">
+              <input type="number" id="p-max_nofollow_pct" data-param="max_nofollow_pct" min="1" max="100">
+              <span class="param-unit">%</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">Min internal links</span>
+            <div class="param-control">
+              <input type="number" id="p-min_internal_links" data-param="min_internal_links" min="1" max="100">
+              <span class="param-unit">count</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">Max URL depth (/ levels)</span>
+            <div class="param-control">
+              <input type="number" id="p-max_url_depth" data-param="max_url_depth" min="1" max="20">
+              <span class="param-unit">levels</span>
+            </div>
+          </div>
+
+          <div class="params-cat-label">Third-Party Resources</div>
+          <div class="param-row">
+            <span class="param-name">Max third-party domains</span>
+            <div class="param-control">
+              <input type="number" id="p-max_3p_domains" data-param="max_3p_domains" min="1" max="100">
+              <span class="param-unit">count</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">Heavy script threshold</span>
+            <div class="param-control">
+              <input type="number" id="p-heavy_script_kb" data-param="heavy_script_kb" min="10" max="10000">
+              <span class="param-unit">KB</span>
+            </div>
+          </div>
+
+          <div class="params-cat-label">Broken Links</div>
+          <div class="param-row">
+            <span class="param-name">Max links to check</span>
+            <div class="param-control">
+              <input type="number" id="p-bl_max_urls" data-param="bl_max_urls" min="10" max="500">
+              <span class="param-unit">count</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">Link check timeout</span>
+            <div class="param-control">
+              <input type="number" id="p-bl_timeout" data-param="bl_timeout" min="3" max="60">
+              <span class="param-unit">s</span>
+            </div>
+          </div>
+          <div class="param-row">
+            <span class="param-name">Concurrent requests</span>
+            <div class="param-control">
+              <input type="number" id="p-bl_concurrent" data-param="bl_concurrent" min="1" max="20">
+              <span class="param-unit">count</span>
+            </div>
+          </div>
+
+          <div class="params-reset-row">
+            <button type="button" id="btn-reset-params" class="btn-reset">Reset to defaults</button>
+          </div>
+        </section>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-save">Save Settings</button>
+          <span id="save-confirmation" class="save-msg hidden">Saved!</span>
+        </div>
+
+      </form>
+    </main>
+
+    <footer class="footer">
+      SEOInspector v1.0 — Real-time SEO audit
+    </footer>
+  </div>
+
+  <script src="popup/lib/constants.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
