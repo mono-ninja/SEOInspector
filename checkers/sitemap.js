@@ -2,6 +2,11 @@ function runSitemapChecker(p) {
   var origin = window.location.origin;
   var isHttps = window.location.protocol === 'https:';
 
+  function normPageUrl(u) {
+    return (u || '').split('#')[0].replace(/\/$/, '');
+  }
+  var currentUrlNorm = normPageUrl(window.location.href);
+
   function bgFetch(url) {
     return new Promise(function(resolve) {
       var controller = new AbortController();
@@ -49,6 +54,7 @@ function runSitemapChecker(p) {
     var hasImages = doc.getElementsByTagName('image:loc').length > 0;
     var hasVideos = doc.getElementsByTagName('video:loc').length > 0;
     var seenUrls = {};
+    var hasCurrentUrl = false;
 
     for (var j = 0; j < urlTags.length; j++) {
       var ut = urlTags[j];
@@ -58,6 +64,7 @@ function runSitemapChecker(p) {
 
       if (locEl2) {
         var rawLoc = locEl2.textContent.trim();
+        if (normPageUrl(rawLoc) === currentUrlNorm) hasCurrentUrl = true;
         try {
           var parsed = new URL(rawLoc);
           if (parsed.origin !== origin) wrongDomain++;
@@ -78,7 +85,25 @@ function runSitemapChecker(p) {
         if (!isNaN(v)) priorities.push(v);
       }
     }
-    return { isIndex: false, total: total, lastmods: lastmods, priorities: priorities, wrongDomain: wrongDomain, invalidUrl: invalidUrl, httpOnHttps: httpOnHttps, duplicates: duplicates, hasImages: hasImages, hasVideos: hasVideos };
+    return { isIndex: false, total: total, lastmods: lastmods, priorities: priorities, wrongDomain: wrongDomain, invalidUrl: invalidUrl, httpOnHttps: httpOnHttps, duplicates: duplicates, hasImages: hasImages, hasVideos: hasVideos, hasCurrentUrl: hasCurrentUrl };
+  }
+
+  // «Чи є поточний URL у sitemap» — для index перевіряємо лише завантажені
+  // дочірні sitemap, тому при частковому покритті повідомлення обережне.
+  function addCurrentUrlIssue(issues, found, checkedCount, totalCount) {
+    if (found) {
+      issues.push({ type: 'url_in_sitemap', message: 'Поточна сторінка присутня в sitemap ✓', severity: 'info', detail: currentUrlNorm });
+    } else {
+      var partial = totalCount > checkedCount;
+      issues.push({
+        type: 'url_not_in_sitemap',
+        message: partial
+          ? 'Поточну сторінку не знайдено в перевірених sitemap (' + checkedCount + ' з ' + totalCount + ')'
+          : 'Поточної сторінки немає в sitemap',
+        severity: 'notice',
+        detail: 'URL: ' + currentUrlNorm + (partial ? '\nПеревірено лише частину файлів sitemap index — сторінка може бути в інших.' : '\nСторінки поза sitemap індексуються повільніше та вважаються менш пріоритетними.')
+      });
+    }
   }
 
   function analyzeLastmods(lastmods, total, now, issues) {
@@ -147,6 +172,9 @@ function runSitemapChecker(p) {
       if (hasImages) infoLines.push('Image sitemap  так');
       if (hasVideos) infoLines.push('Video sitemap  так');
       issues.push({ type: 'sitemap_overview', message: 'Sitemap', severity: 'info', detail: infoLines.join('\n') });
+      var foundInChild = childStats.some(function(cs) { return cs && cs.hasCurrentUrl; });
+      var checkedChildren = childStats.filter(function(cs) { return !!cs; }).length;
+      addCurrentUrlIssue(issues, foundInChild, checkedChildren, data.indexUrls.length);
       if (totalUrls > 45000) {
         issues.push({ type: 'sitemap_too_large', message: 'Понад 45 000 URL — наближається до ліміту 50 000 на файл', severity: 'warning' });
       }
@@ -167,6 +195,7 @@ function runSitemapChecker(p) {
         issues.push({ type: 'sitemap_empty', message: 'Sitemap порожній — не знайдено записів <url>', severity: 'warning' });
         return issues;
       }
+      addCurrentUrlIssue(issues, data.hasCurrentUrl, 1, 1);
       if (data.total > 45000) {
         issues.push({ type: 'sitemap_too_large', message: 'Понад 45 000 URL — наближається до ліміту 50 000 на файл', severity: 'warning' });
       }

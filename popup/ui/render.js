@@ -7,6 +7,7 @@ function calcScore(critical, warning, notice) {
 function countSeverities(issues) {
   var c = 0, w = 0, n = 0;
   issues.forEach(function(i) {
+    if (i.muted) return;
     if (i.severity === 'critical') c++;
     else if (i.severity === 'warning') w++;
     else if (i.severity !== 'info') n++;
@@ -64,6 +65,12 @@ function renderSummary(results) {
   if (barNote) barNote.style.width = noteContrib + '%';
   if (barGood) barGood.style.width = goodPct + '%';
 
+  var scoreEl = document.getElementById('health-score');
+  if (scoreEl) {
+    scoreEl.textContent = goodPct;
+    scoreEl.className = 'health-score ' + (goodPct >= 80 ? 'score-good' : goodPct >= 50 ? 'score-mid' : 'score-bad');
+  }
+
   var numCrit = document.getElementById('stat-num-critical');
   var numWarn = document.getElementById('stat-num-warning');
   var numNote = document.getElementById('stat-num-notice');
@@ -119,6 +126,7 @@ function updateSevFilter(results, activeTab) {
   var source = activeTab === 'all' ? results : results.filter(function(r) { return r.id === activeTab; });
   source.forEach(function(r) {
     r.issues.forEach(function(i) {
+      if (i.muted) return;
       if (i.severity === 'critical') counts.critical++;
       else if (i.severity === 'warning') counts.warning++;
       else if (i.severity === 'info') counts.info++;
@@ -131,7 +139,9 @@ function updateSevFilter(results, activeTab) {
     var total = counts.critical + counts.warning + counts.notice;
     var label = T.t('popup.sev.' + sev) + ' (' + (sev === 'all' ? total : sev === 'info' ? counts.info : counts[sev] || 0) + ')';
     btn.textContent = label;
-    btn.classList.toggle('active', sev === PopupState.currentSeverity);
+    var on = sev === PopupState.currentSeverity;
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
 }
 
@@ -150,17 +160,10 @@ function renderResults(results, activeTab) {
 
   var source = activeTab === 'all' ? results : results.filter(function(r) { return r.id === activeTab; });
 
-  // Placeholder shown by applyIssueFilter when the active filter matches nothing
+  // Placeholder filled by applyIssueFilter when nothing is visible
   var noMsg = document.createElement('div');
   noMsg.className = 'no-issues hidden';
   noMsg.id = 'no-filter-match';
-  var noIcon = document.createElement('span');
-  noIcon.className = 'checkmark';
-  noIcon.textContent = '✅';
-  var noP = document.createElement('p');
-  noP.textContent = T.t('popup.no_issues');
-  noMsg.appendChild(noIcon);
-  noMsg.appendChild(noP);
   container.appendChild(noMsg);
 
   var cardIndex = 0;
@@ -185,8 +188,9 @@ function renderResults(results, activeTab) {
     r.issues.forEach(function(issue) {
       var sev = issue.severity || 'notice';
       var div = document.createElement('div');
-      div.className = 'issue ' + sev;
+      div.className = 'issue ' + sev + (issue.muted ? ' muted-issue' : '');
       div.dataset.sev = sev;
+      if (issue.muted) div.dataset.muted = '1';
       div.style.animation = 'card-slide-in 0.15s ease-out ' + (Math.min(cardIndex, 10) * 20) + 'ms both';
       cardIndex++;
 
@@ -251,6 +255,20 @@ function renderResults(results, activeTab) {
       }
       msgRow.appendChild(hlBtn);
 
+      if (issue.type) {
+        var muteBtn = document.createElement('button');
+        muteBtn.className = 'mute-btn' + (issue.muted ? ' muted' : '');
+        muteBtn.textContent = issue.muted ? '↩' : '✕';
+        muteBtn.title = T.t(issue.muted ? 'popup.mute.restore' : 'popup.mute.ignore');
+        (function(type) {
+          muteBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleMuteIssue(type);
+          });
+        })(issue.type);
+        msgRow.appendChild(muteBtn);
+      }
+
       div.appendChild(msgRow);
 
       if (issue.detail) {
@@ -286,7 +304,59 @@ function renderResults(results, activeTab) {
     if (isHtmlVal) renderW3cSection(container);
   });
 
+  // Toggle for issues the user chose to ignore on this domain
+  var mutedCount = 0;
+  source.forEach(function(r) {
+    r.issues.forEach(function(i) { if (i.muted) mutedCount++; });
+  });
+  if (mutedCount > 0) {
+    var mutedToggle = document.createElement('button');
+    mutedToggle.id = 'muted-toggle';
+    mutedToggle.className = 'muted-toggle';
+    mutedToggle.textContent = T.t(PopupState.showMuted ? 'popup.muted.hide' : 'popup.muted.show', { count: mutedCount });
+    mutedToggle.addEventListener('click', function() {
+      PopupState.showMuted = !PopupState.showMuted;
+      mutedToggle.textContent = T.t(PopupState.showMuted ? 'popup.muted.hide' : 'popup.muted.show', { count: mutedCount });
+      applyIssueFilter(PopupState.currentSeverity);
+    });
+    container.appendChild(mutedToggle);
+  }
+
   applyIssueFilter(PopupState.currentSeverity);
+}
+
+function toggleMuteIssue(type) {
+  if (!type) return;
+  var domain = getDomain(PopupState.currentTabUrl);
+  if (!domain) return;
+  chrome.storage.local.get({ mutedIssues: {} }, function(d) {
+    var all = d.mutedIssues || {};
+    var list = all[domain] || [];
+    var idx = list.indexOf(type);
+    if (idx === -1) list.push(type);
+    else list.splice(idx, 1);
+    if (list.length) all[domain] = list;
+    else delete all[domain];
+    chrome.storage.local.set({ mutedIssues: all }, function() {
+      PopupState.mutedTypes = {};
+      list.forEach(function(t) { PopupState.mutedTypes[t] = true; });
+      if (!PopupState.lastResults) return;
+      applyMuteFlags(PopupState.lastResults);
+      var stats = renderSummary(PopupState.lastResults);
+      updateTabBadges(PopupState.lastResults);
+      renderResults(PopupState.lastResults, PopupState.currentTab);
+      updateSevFilter(PopupState.lastResults, PopupState.currentTab);
+      chrome.storage.sync.get({ showBadge: true }, function(s) {
+        chrome.runtime.sendMessage({
+          action: 'updateBadge',
+          show: s.showBadge !== false,
+          tabId: PopupState.currentTabId,
+          critical: stats.critical,
+          warning: stats.warning
+        });
+      });
+    });
+  });
 }
 
 function applyIssueFilter(severity) {
@@ -302,7 +372,8 @@ function applyIssueFilter(severity) {
     var visibleInGroup = 0;
     Array.prototype.forEach.call(group.querySelectorAll('.issue'), function(el) {
       var sev = el.dataset.sev;
-      var visible = (severity === 'all' && sev !== 'info') || sev === severity;
+      var sevMatch = (severity === 'all' && sev !== 'info') || sev === severity;
+      var visible = sevMatch && (el.dataset.muted !== '1' || PopupState.showMuted);
       el.classList.toggle('hidden', !visible);
       if (visible) visibleInGroup++;
     });
@@ -311,7 +382,46 @@ function applyIssueFilter(severity) {
   });
 
   var noMsg = document.getElementById('no-filter-match');
-  if (noMsg) noMsg.classList.toggle('hidden', visibleTotal > 0);
+  if (noMsg) {
+    noMsg.classList.toggle('hidden', visibleTotal > 0);
+    if (visibleTotal === 0) {
+      noMsg.innerHTML = '';
+      var icon = document.createElement('span');
+      icon.className = 'checkmark';
+      var p = document.createElement('p');
+      var hasAnyIssue = !!container.querySelector('.checker-group:not(#w3c-section) .issue');
+      if (severity !== 'all' && hasAnyIssue) {
+        // Issues exist but the active severity filter hides them all
+        noMsg.classList.add('filter-mismatch');
+        icon.textContent = '🔍';
+        p.textContent = T.t('popup.filter.no_match');
+        noMsg.appendChild(icon);
+        noMsg.appendChild(p);
+        var resetBtn = document.createElement('button');
+        resetBtn.className = 'filter-reset-btn';
+        resetBtn.textContent = T.t('popup.filter.reset');
+        resetBtn.addEventListener('click', resetSeverityFilter);
+        noMsg.appendChild(resetBtn);
+      } else {
+        noMsg.classList.remove('filter-mismatch');
+        icon.textContent = '✅';
+        p.textContent = T.t('popup.no_issues');
+        noMsg.appendChild(icon);
+        noMsg.appendChild(p);
+      }
+    }
+  }
+}
+
+function resetSeverityFilter() {
+  PopupState.currentSeverity = 'all';
+  document.querySelectorAll('.sev-btn').forEach(function(b) {
+    var on = b.dataset.sev === 'all';
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  chrome.storage.local.set({ sevFilter: 'all' });
+  applyIssueFilter('all');
 }
 
 function renderW3cSection(container) {

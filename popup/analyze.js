@@ -61,6 +61,39 @@ function showError(msg) {
   results.appendChild(errWrap);
 }
 
+// Flag issues whose type the user chose to ignore on this domain. Muted issues
+// stay in the results (so they can be shown and un-muted) but are excluded from
+// score, badges, quick wins and exports.
+function applyMuteFlags(results) {
+  var muted = PopupState.mutedTypes || {};
+  results.forEach(function(r) {
+    r.issues.forEach(function(issue) {
+      issue.muted = !!(issue.type && muted[issue.type]);
+    });
+  });
+  return results;
+}
+
+// Several checkers can emit the same issue type for the same page condition
+// (e.g. thin_content from both seo and content_quality). Keep all issues from
+// the checker that reported a type first; drop that type from later checkers
+// so the score is not penalized twice. Repeats within one checker are kept
+// (e.g. techstack emits many tech_lib entries).
+function dedupeIssueTypes(results) {
+  var ownerByType = {};
+  results.forEach(function(r) {
+    r.issues = r.issues.filter(function(issue) {
+      if (!issue.type) return true;
+      if (!(issue.type in ownerByType)) {
+        ownerByType[issue.type] = r.id;
+        return true;
+      }
+      return ownerByType[issue.type] === r.id;
+    });
+  });
+  return results;
+}
+
 function saveAuditHistory(url, stats) {
   var entry = {
     url: url,
@@ -102,6 +135,7 @@ function analyzeTab(tabId) {
         if (!(c.id in enabled)) enabled[c.id] = true;
       });
       PopupState.currentParams = data.seoParams || {};
+      PopupState.currentParams.target_keyword = PopupState.targetKeyword || '';
 
       chrome.storage.local.get({ customSecurityFiles: [] }, function(localData) {
         if (analyzeId !== currentAnalyzeId) return;
@@ -118,7 +152,8 @@ function analyzeTab(tabId) {
             return;
           }
 
-          PopupState.lastResults = response;
+          PopupState.lastResults = applyMuteFlags(dedupeIssueTypes(response));
+          response = PopupState.lastResults;
           hideLoading();
           var stats = renderSummary(response);
           updateTabBadges(response);
@@ -129,6 +164,7 @@ function analyzeTab(tabId) {
           chrome.runtime.sendMessage({
             action: 'updateBadge',
             show: data.showBadge !== false,
+            tabId: tabId,
             critical: stats.critical,
             warning: stats.warning
           });

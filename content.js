@@ -240,11 +240,6 @@ var HIGHLIGHT_MAP = {
       return !nav.getAttribute('aria-label');
     });
   },
-  blocking_scripts: function() {
-    return Array.prototype.filter.call(document.querySelectorAll('head script[src]'), function(s) {
-      return !s.hasAttribute('async') && !s.hasAttribute('defer') && s.getAttribute('type') !== 'module';
-    });
-  },
   // links
   empty_anchor_text: function() {
     return Array.prototype.filter.call(document.querySelectorAll('a[href]'), function(a) {
@@ -791,7 +786,6 @@ var CHECKERS = [
   { id: 'images',         fn: runImagesChecker },
   { id: 'opengraph',      fn: runOpenGraphChecker },
   { id: 'schema',         fn: runSchemaChecker },
-  { id: 'performance',    fn: runPerformanceChecker },
   { id: 'links',          fn: runLinksChecker },
   { id: 'accessibility',  fn: runAccessibilityChecker },
   { id: 'vitals',         fn: runVitalsChecker },

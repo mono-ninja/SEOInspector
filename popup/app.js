@@ -225,6 +225,7 @@ function copyAllIssues() {
   PopupState.lastResults.forEach(function(checker) {
     if (!checker || !checker.issues || !checker.issues.length) return;
     var filtered = checker.issues.filter(function(issue) {
+      if (issue.muted) return false;
       if (sevFilter === 'all') return issue.severity !== 'info';
       return issue.severity === sevFilter;
     });
@@ -307,8 +308,33 @@ function init() {
     PopupState.currentTabId = tab.id;
     PopupState.currentTabTitle = tab.title || '';
 
-    analyzeTab(tab.id);
+    // Load per-domain target keyword and muted issue types before first analysis
+    var domain = getDomain(PopupState.currentTabUrl);
+    chrome.storage.local.get({ targetKeywords: {}, mutedIssues: {} }, function(d) {
+      PopupState.targetKeyword = (d.targetKeywords || {})[domain] || '';
+      PopupState.mutedTypes = {};
+      ((d.mutedIssues || {})[domain] || []).forEach(function(t) { PopupState.mutedTypes[t] = true; });
+
+      var kwBar = document.getElementById('kw-bar');
+      var kwInput = document.getElementById('target-keyword');
+      if (kwBar && kwInput) {
+        kwBar.classList.remove('hidden');
+        kwInput.value = PopupState.targetKeyword;
+        kwInput.placeholder = T.t('popup.kw.placeholder');
+        kwInput.title = T.t('popup.kw.title');
+      }
+
+      analyzeTab(tab.id);
+    });
   });
+
+  // Target keyword — apply on Enter or button click
+  var kwApplyInput = document.getElementById('target-keyword');
+  var kwApplyBtn = document.getElementById('btn-kw-apply');
+  if (kwApplyInput) kwApplyInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') applyTargetKeyword();
+  });
+  if (kwApplyBtn) kwApplyBtn.addEventListener('click', applyTargetKeyword);
 
   // Sidebar navigation
   document.querySelectorAll('.sidebar-item:not(.sidebar-pinned-clone)').forEach(function(btn) {
@@ -320,7 +346,9 @@ function init() {
     var saved = d.sevFilter || 'all';
     PopupState.currentSeverity = saved;
     document.querySelectorAll('.sev-btn').forEach(function(b) {
-      b.classList.toggle('active', b.dataset.sev === saved);
+      var on = b.dataset.sev === saved;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
     if (PopupState.lastResults) {
       applyIssueFilter(saved);
@@ -334,8 +362,12 @@ function init() {
   document.querySelectorAll('.sev-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       PopupState.currentSeverity = btn.dataset.sev;
-      document.querySelectorAll('.sev-btn').forEach(function(b) { b.classList.remove('active'); });
+      document.querySelectorAll('.sev-btn').forEach(function(b) {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
       chrome.storage.local.set({ sevFilter: PopupState.currentSeverity });
       if (PopupState.lastResults) applyIssueFilter(PopupState.currentSeverity);
     });
@@ -421,8 +453,15 @@ function init() {
       document.documentElement.lang = newLocale;
       T.applyTranslations();
       initPinnedSection(currentPinnedIds);
+      var kwInputLang = document.getElementById('target-keyword');
+      if (kwInputLang) {
+        kwInputLang.placeholder = T.t('popup.kw.placeholder');
+        kwInputLang.title = T.t('popup.kw.title');
+      }
       if (PopupState.lastResults) {
         renderSummary(PopupState.lastResults);
+        renderResults(PopupState.lastResults, PopupState.currentTab);
+        updateSevFilter(PopupState.lastResults, PopupState.currentTab);
       }
     });
   }
@@ -494,8 +533,12 @@ function init() {
       var targetTab = tab.dataset.tab;
       PopupState.activeContentTab = targetTab;
       PopupState.expandedQuickWin = null;
-      document.querySelectorAll('.c-tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.c-tab').forEach(function(t) {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
       tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
 
       var filterBar = document.getElementById('filter-bar');
       if (targetTab === 'quick-wins') {
@@ -514,19 +557,23 @@ function init() {
 
   // Stat card clicks — apply severity filter and switch to All Issues tab
   document.querySelectorAll('.stat-card').forEach(function(card) {
-    card.addEventListener('click', function() {
+    function activateStatCard() {
       var sev = card.dataset.sev;
       PopupState.activeContentTab = 'all-issues';
       PopupState.expandedQuickWin = null;
       document.querySelectorAll('.c-tab').forEach(function(t) {
-        t.classList.toggle('active', t.dataset.tab === 'all-issues');
+        var on = t.dataset.tab === 'all-issues';
+        t.classList.toggle('active', on);
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
       });
       var filterBar = document.getElementById('filter-bar');
       if (filterBar) filterBar.classList.remove('hidden');
 
       PopupState.currentSeverity = sev;
       document.querySelectorAll('.sev-btn').forEach(function(b) {
-        b.classList.toggle('active', b.dataset.sev === sev);
+        var on = b.dataset.sev === sev;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
       chrome.storage.local.set({ sevFilter: sev });
 
@@ -535,6 +582,31 @@ function init() {
         applyIssueFilter(sev);
         updateSevFilter(PopupState.lastResults, PopupState.currentTab);
       }
+    }
+    card.addEventListener('click', activateStatCard);
+    card.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        activateStatCard();
+      }
+    });
+  });
+}
+
+function applyTargetKeyword() {
+  var input = document.getElementById('target-keyword');
+  if (!input) return;
+  var kw = input.value.trim();
+  if (kw === (PopupState.targetKeyword || '')) return;
+  var domain = getDomain(PopupState.currentTabUrl);
+  if (!domain) return;
+  chrome.storage.local.get({ targetKeywords: {} }, function(d) {
+    var all = d.targetKeywords || {};
+    if (kw) all[domain] = kw;
+    else delete all[domain];
+    chrome.storage.local.set({ targetKeywords: all }, function() {
+      PopupState.targetKeyword = kw;
+      if (PopupState.currentTabId) analyzeTab(PopupState.currentTabId);
     });
   });
 }
@@ -550,11 +622,13 @@ function initSidebarGroups(collapsedState) {
     if (collapsedState[groupId]) {
       group.classList.add('collapsed');
       itemsEl.classList.add('collapsed');
+      group.setAttribute('aria-expanded', 'false');
     }
 
     group.addEventListener('click', function() {
       var isCollapsed = group.classList.toggle('collapsed');
       itemsEl.classList.toggle('collapsed', isCollapsed);
+      group.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
       collapsedState[groupId] = isCollapsed;
       chrome.storage.local.set({ collapsedGroups: collapsedState });
     });

@@ -55,19 +55,23 @@ function runContentQualityChecker(p) {
     our:1, their:1, how:1, what:1, when:1, where:1, which:1
   };
   var h1Words = h1Text.split(/\s+/).filter(function(w) { return w.length > 3 && !stopWords[w]; });
-  var seedKeyword = h1Words.slice(0, 2).join(' ');
+  // User-provided target keyword takes priority over the H1-derived seed
+  var userKeyword = (params.target_keyword || '').trim().toLowerCase();
+  var seedKeyword = userKeyword || h1Words.slice(0, 2).join(' ');
+  var keywordSource = userKeyword ? 'target' : 'H1';
   var keywordDensity = 0;
   if (seedKeyword && wordCount > 0) {
     // Word-exact matching via word array — \b doesn't work for Cyrillic in JS RegExp
     var allWords = rawText.toLowerCase().match(/[a-zа-яёіїєґ']+/gi) || [];
-    var kwParts = seedKeyword.split(/\s+/);
+    var kwParts = seedKeyword.split(/\s+/).filter(function(w) { return w.length > 0; });
     var matchCount = 0;
-    if (kwParts.length === 1) {
-      var kw0 = kwParts[0];
-      allWords.forEach(function(w) { if (w === kw0) matchCount++; });
-    } else {
-      for (var wi = 0; wi < allWords.length - 1; wi++) {
-        if (allWords[wi] === kwParts[0] && allWords[wi + 1] === kwParts[1]) matchCount++;
+    if (kwParts.length > 0) {
+      for (var wi = 0; wi <= allWords.length - kwParts.length; wi++) {
+        var matched = true;
+        for (var ki = 0; ki < kwParts.length; ki++) {
+          if (allWords[wi + ki] !== kwParts[ki]) { matched = false; break; }
+        }
+        if (matched) matchCount++;
       }
     }
     keywordDensity = allWords.length > 0 ? Math.round((matchCount / allWords.length) * 1000) / 10 : 0;
@@ -105,7 +109,7 @@ function runContentQualityChecker(p) {
       'Avg words/sentence   ' + (avgWordsPerSentence || '—'),
       'Lists (ul/ol)        ' + (hasLists ? '✓' : '—'),
       'Images/media         ' + (contentMediaCount > 0 ? contentMediaCount : '—'),
-      'Keyword (H1)         ' + (seedKeyword || '—'),
+      'Keyword (' + keywordSource + ')     ' + (seedKeyword || '—'),
       'Keyword density      ' + (seedKeyword ? keywordDensity + '%' : '—'),
       'Publication date     ' + (!hasDateEl && !hasMetaDate ? '—' : contentAgeYears > 0 ? contentAgeYears + ' yr ago' : '✓'),
     ].join('\n')

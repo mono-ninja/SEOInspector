@@ -33,7 +33,7 @@ function exportReport() {
 
   var rows = '';
   results.forEach(function(r) {
-    var checkerIssues = (r.issues || []).slice().sort(function(a, b) {
+    var checkerIssues = (r.issues || []).filter(function(i) { return !i.muted; }).sort(function(a, b) {
       return (sevOrder[a.severity] || 3) - (sevOrder[b.severity] || 3);
     });
     checkerIssues.forEach(function(i) {
@@ -113,7 +113,9 @@ function exportReportJSON() {
     warning: stats.warning,
     notice: stats.notice,
     total: stats.total,
-    results: results
+    results: results.map(function(r) {
+      return { id: r.id, name: r.name, issues: (r.issues || []).filter(function(i) { return !i.muted; }) };
+    })
   };
 
   var json = JSON.stringify(data, null, 2);
@@ -156,6 +158,7 @@ function exportReportCSV() {
   var rows = [[T.t('export.col.checker'), T.t('export.col.type'), T.t('export.col.severity'), T.t('export.col.message'), T.t('export.col.details')]];
   results.forEach(function(r) {
     (r.issues || []).forEach(function(i) {
+      if (i.muted) return;
       rows.push([
         csvEsc(r.name || r.id),
         csvEsc(i.type || ''),

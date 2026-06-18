@@ -31,4 +31,8 @@ var PopupState = {
   rdState: null,
   activeContentTab: 'quick-wins',
   expandedQuickWin: null,
+
+  targetKeyword: '',
+  mutedTypes: {},
+  showMuted: false,
 };

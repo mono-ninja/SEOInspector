@@ -52,11 +52,15 @@ function runVitalsChecker(p) {
       });
     } catch(e) {}
 
-    // INP — Interaction to Next Paint via PerformanceObserver (buffered events)
+    // INP — Interaction to Next Paint via PerformanceObserver (buffered events).
+    // Only entries with interactionId are real interactions; other event entries
+    // (e.g. uninteractive pointer events) must not contribute to INP. Worst
+    // interaction == INP for sessions with fewer than 50 interactions.
     var inpValue = null;
     try {
       var inpObs = new PerformanceObserver(function(list) {
         list.getEntries().forEach(function(entry) {
+          if (!entry.interactionId) return;
           if (inpValue === null || entry.duration > inpValue) inpValue = entry.duration;
         });
       });

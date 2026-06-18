@@ -131,6 +131,56 @@ function analyzeHeaders(headers, isHttps) {
   return recs;
 }
 
+// A–F grade in the spirit of securityheaders.com: six key headers, one grade
+// step lost per missing header; no HTTPS is an automatic F.
+function computeSecurityGrade(headers, isHttps) {
+  var csp = headers['content-security-policy'] || '';
+  var checks = [
+    { label: 'Content-Security-Policy',   ok: !!csp },
+    { label: 'Strict-Transport-Security', ok: !!headers['strict-transport-security'] },
+    { label: 'X-Frame-Options',           ok: !!headers['x-frame-options'] || csp.indexOf('frame-ancestors') !== -1 },
+    { label: 'X-Content-Type-Options',    ok: !!headers['x-content-type-options'] },
+    { label: 'Referrer-Policy',           ok: !!headers['referrer-policy'] },
+    { label: 'Permissions-Policy',        ok: !!headers['permissions-policy'] },
+  ];
+  var missing = checks.filter(function(c) { return !c.ok; }).map(function(c) { return c.label; });
+  var grade;
+  if (!isHttps) grade = 'F';
+  else grade = ['F', 'F', 'E', 'D', 'C', 'B', 'A'][checks.length - missing.length];
+  return { grade: grade, missing: missing };
+}
+
+function renderSecurityGrade(container, headers, isHttps) {
+  var result = computeSecurityGrade(headers, isHttps);
+  var wrap = document.createElement('div');
+  wrap.className = 'sec-grade-wrap';
+
+  var badge = document.createElement('div');
+  badge.className = 'sec-grade sec-grade-' + result.grade.toLowerCase();
+  badge.textContent = result.grade;
+  wrap.appendChild(badge);
+
+  var info = document.createElement('div');
+  info.className = 'sec-grade-info';
+  var title = document.createElement('div');
+  title.className = 'sec-grade-title';
+  title.textContent = T.t('headers.grade');
+  info.appendChild(title);
+  var desc = document.createElement('div');
+  desc.className = 'sec-grade-desc';
+  if (!isHttps) {
+    desc.textContent = T.t('headers.grade.no_https');
+  } else if (result.missing.length === 0) {
+    desc.textContent = T.t('headers.grade.all_present');
+  } else {
+    desc.textContent = T.t('headers.grade.missing', { list: result.missing.join(', ') });
+  }
+  info.appendChild(desc);
+  wrap.appendChild(info);
+
+  container.appendChild(wrap);
+}
+
 function renderHeadersContent(container, resp, tabUrl) {
   var headers = resp.headers || {};
   var isHttps = (resp.url || '').indexOf('https://') === 0;
@@ -140,6 +190,9 @@ function renderHeadersContent(container, resp, tabUrl) {
   statusEl.className = 'headers-status';
   statusEl.textContent = 'HTTP ' + resp.status + ' — ' + resp.url;
   container.appendChild(statusEl);
+
+  // Security grade badge
+  renderSecurityGrade(container, headers, isHttps);
 
   // ── Recommendations ───────────────────────────────────────────────────────
   var recs = analyzeHeaders(headers, isHttps);

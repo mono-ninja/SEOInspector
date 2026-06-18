@@ -14,17 +14,31 @@ function runSeoChecker(p) {
   var canonEl = document.querySelector('link[rel="canonical"]');
   var canonVal = canonEl ? (canonEl.getAttribute('href') || '').trim() : '';
 
+  // SERP pixel width — Google truncates by pixels, not characters
+  // (~580 px for titles at 20px Arial, ~920 px for descriptions at 14px Arial)
+  var TITLE_MAX_PX = 580;
+  var DESC_MAX_PX = 920;
+  function measureSerpPx(str, font) {
+    try {
+      var ctx = document.createElement('canvas').getContext('2d');
+      ctx.font = font;
+      return Math.round(ctx.measureText(str).width);
+    } catch(e) { return 0; }
+  }
+  var titlePx = titleVal ? measureSerpPx(titleVal, '20px Arial') : 0;
+  var descPx = descVal ? measureSerpPx(descVal, '14px Arial') : 0;
+
   issues.push({
     type: 'info_title',
     message: 'Title: ' + (titleVal ? '«' + titleVal + '»' : '—'),
     severity: 'info',
-    detail: titleVal ? titleVal.length + ' chars' : ''
+    detail: titleVal ? titleVal.length + ' chars · ' + titlePx + ' px (SERP limit ~' + TITLE_MAX_PX + ' px)' : ''
   });
   issues.push({
     type: 'info_description',
     message: 'Description: ' + (descVal ? '«' + descVal + '»' : '—'),
     severity: 'info',
-    detail: descVal ? descVal.length + ' chars' : ''
+    detail: descVal ? descVal.length + ' chars · ' + descPx + ' px (SERP limit ~' + DESC_MAX_PX + ' px)' : ''
   });
   issues.push({
     type: 'info_canonical',
@@ -44,7 +58,10 @@ function runSeoChecker(p) {
   } else if (title.length < titleMin) {
     issues.push({ type: 'short_title', message: '<title> tag is too short (less than ' + titleMin + ' chars)', severity: 'warning', detail: 'Current length: ' + title.length + ' chars. Value: "' + title + '"' });
   } else if (title.length > titleMax) {
-    issues.push({ type: 'long_title', message: '<title> tag is too long (more than ' + titleMax + ' chars)', severity: 'notice', detail: 'Current length: ' + title.length + ' chars. Recommended up to ' + titleMax + '.' });
+    issues.push({ type: 'long_title', message: '<title> tag is too long (more than ' + titleMax + ' chars)', severity: 'notice', detail: 'Current length: ' + title.length + ' chars (' + titlePx + ' px, SERP limit ~' + TITLE_MAX_PX + ' px). Recommended up to ' + titleMax + '.' });
+  } else if (titlePx > TITLE_MAX_PX) {
+    // within the char limit but still wider than Google's pixel budget
+    issues.push({ type: 'title_truncated_serp', message: '<title> will be truncated in Google SERP (' + titlePx + ' px, limit ~' + TITLE_MAX_PX + ' px)', severity: 'notice', detail: 'Google truncates titles by pixel width, not characters. Wide letters (W, M, caps) take more space.' });
   }
 
   // Title / H1 alignment
@@ -52,8 +69,10 @@ function runSeoChecker(p) {
   if (h1El && title) {
     var h1Text = (h1El.textContent || h1El.innerText || '').trim().toLowerCase();
     var titleLower = title.toLowerCase();
-    var titleWords = titleLower.split(/\W+/).filter(function(w) { return w.length >= 4; });
-    var h1Words = h1Text.split(/\W+/).filter(function(w) { return w.length >= 4; });
+    // \W is ASCII-only and would split Cyrillic text into nothing — use Unicode classes
+    var splitRe = /[^\p{L}\p{N}]+/u;
+    var titleWords = titleLower.split(splitRe).filter(function(w) { return w.length >= 4; });
+    var h1Words = h1Text.split(splitRe).filter(function(w) { return w.length >= 4; });
     var commonWords = titleWords.filter(function(w) { return h1Words.indexOf(w) !== -1; });
     if (titleWords.length > 0 && h1Words.length > 0 && commonWords.length === 0) {
       issues.push({ type: 'title_h1_mismatch', message: 'Title and H1 have no words in common', severity: 'notice', detail: 'Title: "' + title + '"\nH1: "' + (h1El.textContent || '').trim() + '"' });
@@ -71,7 +90,9 @@ function runSeoChecker(p) {
     } else if (descContent.trim().length < descMin) {
       issues.push({ type: 'short_description', message: 'Meta description is too short (less than ' + descMin + ' chars)', severity: 'notice', detail: 'Current length: ' + descContent.trim().length + ' chars.' });
     } else if (descContent.trim().length > descMax) {
-      issues.push({ type: 'long_description', message: 'Meta description is too long (more than ' + descMax + ' chars)', severity: 'notice', detail: 'Current length: ' + descContent.trim().length + ' chars. Recommended up to ' + descMax + '.' });
+      issues.push({ type: 'long_description', message: 'Meta description is too long (more than ' + descMax + ' chars)', severity: 'notice', detail: 'Current length: ' + descContent.trim().length + ' chars (' + descPx + ' px, SERP limit ~' + DESC_MAX_PX + ' px). Recommended up to ' + descMax + '.' });
+    } else if (descPx > DESC_MAX_PX) {
+      issues.push({ type: 'description_truncated_serp', message: 'Meta description will be truncated in Google SERP (' + descPx + ' px, limit ~' + DESC_MAX_PX + ' px)', severity: 'notice', detail: 'Google truncates descriptions by pixel width, not characters.' });
     }
 
     // Title equals description
@@ -285,7 +306,9 @@ function runSeoChecker(p) {
   var inlineScripts = Array.prototype.slice.call(document.querySelectorAll('script:not([src])'));
   var inlineJs = inlineScripts.map(function(s) { return s.textContent || ''; }).join('\n');
   if (/window\.location\s*(?:\.href\s*=|\.replace\s*\(|\.assign\s*\()/.test(inlineJs)) {
-    issues.push({ type: 'js_redirect', message: 'Redirect via JavaScript (window.location) — recommended to replace with 301', severity: 'warning' });
+    // notice, not warning: the pattern also matches event handlers and other
+    // conditional navigation code, not just top-level redirects
+    issues.push({ type: 'js_redirect', message: 'window.location navigation found in inline scripts — if used as a redirect, replace with a server-side 301', severity: 'notice' });
   }
 
   return { id: 'seo', name: 'SEO', issues: issues };

@@ -114,8 +114,26 @@ async function handleDnsLookup(msg, sendResponse) {
 }
 
 
+// Per-tab badge: critical count (red) or warning count (orange); cleared when
+// show=false or there is nothing to report. Per-tab text resets on navigation.
 async function handleUpdateBadge(msg, sendResponse) {
-  await chrome.action.setBadgeText({ text: '' });
+  var critical = msg.critical || 0;
+  var warning = msg.warning || 0;
+  var text = '';
+  if (msg.show !== false) {
+    if (critical > 0) text = String(critical);
+    else if (warning > 0) text = String(warning);
+  }
+  var textOpts = { text: text };
+  if (msg.tabId) textOpts.tabId = msg.tabId;
+  try {
+    await chrome.action.setBadgeText(textOpts);
+    if (text) {
+      var colorOpts = { color: critical > 0 ? '#e74c3c' : '#f39c12' };
+      if (msg.tabId) colorOpts.tabId = msg.tabId;
+      await chrome.action.setBadgeBackgroundColor(colorOpts);
+    }
+  } catch(e) {} // tab may already be closed
   sendResponse({ ok: true });
 }
 

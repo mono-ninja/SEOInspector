@@ -143,5 +143,103 @@ function runHreflangChecker(p) {
     }
   });
 
-  return { id: 'hreflang', name: 'Hreflang', issues: issues };
+  // ── Return-tag check ──────────────────────────────────────────────────────
+  // Google requires every alternate page to link back to the current page.
+  // Fetch up to 5 alternates via background (page CSP/SW does not apply there)
+  // and look for a return hreflang link. Bounded by a 6 s per-fetch race so a
+  // slow alternate cannot stall the whole audit.
+  var RETURN_CHECK_LIMIT = 5;
+  var FETCH_TIMEOUT_MS = 6000;
+
+  var alternates = [];
+  var seenAlt = {};
+  allHrefs.forEach(function(href) {
+    if (!/^https?:\/\//i.test(href)) return;
+    var norm = normalizeHref(href);
+    if (norm === currentNorm || seenAlt[norm]) return;
+    seenAlt[norm] = true;
+    alternates.push(href);
+  });
+
+  if (alternates.length === 0) {
+    return { id: 'hreflang', name: 'Hreflang', issues: issues };
+  }
+
+  var toCheck = alternates.slice(0, RETURN_CHECK_LIMIT);
+
+  function fetchAlternate(url) {
+    var fetchPromise = new Promise(function(resolve) {
+      try {
+        chrome.runtime.sendMessage({ action: 'fetchText', url: url }, function(resp) {
+          void chrome.runtime.lastError;
+          resolve(resp || { ok: false, status: 0, text: '' });
+        });
+      } catch(e) {
+        resolve({ ok: false, status: 0, text: '' });
+      }
+    });
+    var timeoutPromise = new Promise(function(resolve) {
+      setTimeout(function() { resolve({ ok: false, status: 0, text: '', timedOut: true }); }, FETCH_TIMEOUT_MS);
+    });
+    return Promise.race([fetchPromise, timeoutPromise]);
+  }
+
+  function hasReturnLink(html) {
+    try {
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      var links = doc.querySelectorAll('link[rel="alternate"][hreflang]');
+      for (var i = 0; i < links.length; i++) {
+        var href = (links[i].getAttribute('href') || '').trim();
+        if (href && normalizeHref(href) === currentNorm) return true;
+      }
+    } catch(e) {}
+    return false;
+  }
+
+  return Promise.all(toCheck.map(function(url) {
+    return fetchAlternate(url).then(function(resp) {
+      if (!resp.ok) return { url: url, status: resp.timedOut ? 'timeout' : ('HTTP ' + (resp.status || '?')), error: true };
+      return { url: url, returnLink: hasReturnLink(resp.text || '') };
+    });
+  })).then(function(checks) {
+    var unreachable = checks.filter(function(c) { return c.error; });
+    var noReturn = checks.filter(function(c) { return !c.error && !c.returnLink; });
+    var okCount = checks.filter(function(c) { return !c.error && c.returnLink; }).length;
+
+    if (unreachable.length > 0) {
+      issues.push({
+        type: 'hreflang_alternate_unreachable',
+        message: 'Hreflang alternate URLs could not be fetched (' + unreachable.length + ')',
+        severity: 'warning',
+        detail: unreachable.map(function(c) { return c.url + ' — ' + c.status; }).join('\n')
+      });
+    }
+    if (noReturn.length > 0) {
+      issues.push({
+        type: 'hreflang_no_return_tag',
+        message: 'Hreflang alternates without a return tag to this page (' + noReturn.length + ')',
+        severity: 'warning',
+        detail: 'Google ignores hreflang pairs without confirmed return links.\n' +
+          noReturn.map(function(c) { return c.url; }).join('\n') +
+          '\nExpected return link to: ' + window.location.href.split('#')[0]
+      });
+    }
+    if (okCount > 0 && noReturn.length === 0 && unreachable.length === 0) {
+      issues.push({
+        type: 'hreflang_return_ok',
+        message: 'Hreflang return tags confirmed (' + okCount +
+          (alternates.length > toCheck.length ? ' of first ' + toCheck.length + ', total ' + alternates.length : '') + ') ✓',
+        severity: 'info'
+      });
+    } else if (alternates.length > toCheck.length) {
+      issues.push({
+        type: 'hreflang_return_partial',
+        message: 'Return tags checked for the first ' + toCheck.length + ' of ' + alternates.length + ' alternates',
+        severity: 'info'
+      });
+    }
+    return { id: 'hreflang', name: 'Hreflang', issues: issues };
+  }).catch(function() {
+    return { id: 'hreflang', name: 'Hreflang', issues: issues };
+  });
 }

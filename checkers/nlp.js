@@ -163,7 +163,8 @@ function runNlpChecker(p) {
   var topTrigrams = Object.keys(trigrams).sort(function(a, b) { return trigrams[b] - trigrams[a]; }).slice(0, 5);
 
   // ── Readability indices (compute once, reuse) ───────────────────────────────
-  var charsNoSpaces = text.replace(/\s+/g, '').length;
+  // ARI formula expects letters/digits only, not punctuation
+  var charsNoSpaces = (text.match(/[\p{L}\p{N}]/gu) || []).length;
   var avgSentLen = sentences.length > 0 ? words.length / sentences.length : 0;
   var avgCharsPerWord = words.length > 0 ? charsNoSpaces / words.length : 0;
 
@@ -171,30 +172,39 @@ function runNlpChecker(p) {
   var flesch = null;
   var gunningFog = null;
 
+  // Flesch / Gunning Fog coefficients are calibrated for English text only;
+  // the syllable estimator strips non-Latin letters, so on Cyrillic text these
+  // indices produce garbage. Compute them only for predominantly Latin text.
+  var latinLetters = (text.match(/[a-z]/gi) || []).length;
+  var cyrillicLetters = (text.match(/[а-яёіїєґ]/gi) || []).length;
+  var isLatinText = latinLetters > cyrillicLetters * 3;
+
   if (sentences.length >= 3 && words.length >= 30) {
-    // Automated Readability Index
+    // Automated Readability Index (language-agnostic)
     ari = 4.71 * avgCharsPerWord + 0.5 * avgSentLen - 21.43;
     ari = Math.round(ari * 10) / 10;
+  }
 
-    // Flesch Reading Ease (English-oriented, but gives rough estimate)
+  if (isLatinText && sentences.length >= 3 && words.length >= 30) {
+    // Flesch Reading Ease (English-only)
     var syllableEst = 0;
     words.forEach(function(w) {
       var lw = w.toLowerCase().replace(/[^a-z]/g, '');
       if (lw.length <= 3) syllableEst++;
       else {
-        var syl = lw.match(/[aeiouаеёіїюяэоуы]+/gi);
+        var syl = lw.match(/[aeiou]+/gi);
         syllableEst += syl ? syl.length : 1;
       }
     });
     flesch = 206.835 - 1.015 * avgSentLen - 84.6 * (syllableEst / words.length);
     flesch = Math.round(flesch * 10) / 10;
 
-    // Gunning Fog Index — uses complex words (3+ syllables)
+    // Gunning Fog Index — uses complex words (3+ syllables), English-only
     var complexWords = 0;
     words.forEach(function(w) {
       var lw = w.toLowerCase().replace(/[^a-z]/g, '');
       if (lw.length > 3) {
-        var syl = lw.match(/[aeiouаеёіїюяэоуы]+/gi);
+        var syl = lw.match(/[aeiou]+/gi);
         if (syl && syl.length >= 3) complexWords++;
       }
     });
@@ -220,10 +230,13 @@ function runNlpChecker(p) {
   }
 
   // ── Transition words ────────────────────────────────────────────────────────
+  // \b only works for ASCII word chars, so Cyrillic entries need Unicode-aware
+  // boundaries via lookarounds (supported since Chrome 62).
   var transitionCount = 0;
   var textLower = text.toLowerCase();
   Object.keys(NLP_TRANSITION_WORDS).forEach(function(tw) {
-    var re = new RegExp('\\b' + tw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
+    var escaped = tw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    var re = new RegExp('(?<!\\p{L})' + escaped + '(?!\\p{L})', 'giu');
     var matches = textLower.match(re);
     if (matches) transitionCount += matches.length;
   });
@@ -273,10 +286,17 @@ function runNlpChecker(p) {
   var h1Text = h1El ? (h1El.innerText || '').trim().toLowerCase() : '';
   var h2H3Els = Array.prototype.slice.call(mainEl.querySelectorAll('h2, h3'));
 
-  // Get seed keywords from title (meaningful words > 3 chars)
-  var titleKeywords = titleText.split(/\s+/).filter(function(w) {
-    return w.length > 3 && !NLP_STOP_WORDS[w];
-  });
+  // Get seed keywords: user-provided target keyword takes priority over title
+  var userKeyword = (params.target_keyword || '').trim().toLowerCase();
+  var titleKeywords;
+  if (userKeyword) {
+    titleKeywords = userKeyword.split(/\s+/).filter(function(w) { return w.length > 1; });
+  } else {
+    // meaningful words > 3 chars from <title>
+    titleKeywords = titleText.split(/\s+/).filter(function(w) {
+      return w.length > 3 && !NLP_STOP_WORDS[w];
+    });
+  }
 
   // Get seed keywords from H1
   var h1Keywords = h1Text.split(/\s+/).filter(function(w) {
@@ -318,7 +338,7 @@ function runNlpChecker(p) {
   });
 
   // ── Lexical diversity ───────────────────────────────────────────────────────
-  var lexicalDiversity = words.length > 0 ? (uniqueWords / meaningfulWords.length * 100).toFixed(1) : 0;
+  var lexicalDiversity = meaningfulWords.length > 0 ? (uniqueWords / meaningfulWords.length * 100).toFixed(1) : 0;
 
   // ═════════════════════════════════════════════════════════════════════════════
   // ── Issues ──────────────────────────────────────────────────────────────────

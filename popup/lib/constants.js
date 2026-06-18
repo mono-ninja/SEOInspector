@@ -6,7 +6,6 @@ var CHECKER_TABS = [
   { id: 'images',         label: 'Images' },
   { id: 'opengraph',      label: 'OG' },
   { id: 'schema',         label: 'Schema' },
-  { id: 'performance',    label: 'Perf.' },
   { id: 'links',          label: 'Links' },
   { id: 'accessibility',  label: 'A11y' },
   { id: 'vitals',         label: 'Vitals' },
@@ -60,7 +59,7 @@ var CHECKERS_NO_FILE = ['broken_links'];
 
 var CHECKERS = [
   'seo', 'headings', 'images', 'opengraph',
-  'schema', 'performance', 'links', 'accessibility', 'vitals',
+  'schema', 'links', 'accessibility', 'vitals',
   'analytics', 'gdpr', 'semantics', 'favicon', 'hreflang', 'mobile',
   'localization', 'external_links', 'serp', 'nlp',
   'ai_visibility', 'schema_suggest', 'robots', 'sitemap', 'js_seo', 'security', 'ip_info', 'third_party',

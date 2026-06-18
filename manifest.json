@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "SEOInspector — Real-time SEO Audit",
-  "version": "1.0",
-  "description": "47 SEO checkers, Core Web Vitals, schema validation, broken links, Open Graph & SERP preview, robots.txt — all in one extension",
+  "version": "2.2.0",
+  "description": "46 SEO checkers, Core Web Vitals, schema validation, broken links, Open Graph & SERP preview, robots.txt — all in one extension",
   "homepage_url": "https://mono.ninja",
   "minimum_chrome_version": "88",
   "permissions": ["activeTab", "storage", "scripting", "cookies"],

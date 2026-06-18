@@ -40,37 +40,46 @@
 
 <div id="url-bar" title=""></div>
 
+<div id="kw-bar" class="hidden">
+  <span class="kw-label">🔑</span>
+  <input id="target-keyword" type="text" autocomplete="off" spellcheck="false">
+  <button id="btn-kw-apply" type="button">↵</button>
+</div>
+
 <div id="summary-bar" class="hidden">
   <div class="health-left">
     <div id="health-status"></div>
+    <div class="health-score-wrap" data-i18n="popup.health.score_label" title="">
+      <span id="health-score" class="health-score">0</span><span class="health-score-max">/100</span>
+    </div>
     <div class="health-total-wrap">
       <span id="total-count" class="health-total">0</span>
       <span class="health-total-label" data-i18n="popup.health.total_label">проблем</span>
     </div>
   </div>
   <div class="health-right">
-    <div class="health-bar">
+    <div class="health-bar" aria-hidden="true">
       <div id="bar-critical" class="health-bar-segment health-bar-critical"></div>
       <div id="bar-warning" class="health-bar-segment health-bar-warning"></div>
       <div id="bar-notice" class="health-bar-segment health-bar-notice"></div>
       <div id="bar-good" class="health-bar-segment health-bar-good"></div>
     </div>
     <div class="stat-cards">
-      <div class="stat-card cr" data-sev="critical">
+      <div class="stat-card cr" data-sev="critical" role="button" tabindex="0">
         <div class="stat-card-info">
           <div class="stat-lbl" data-i18n="popup.sev.critical">Критичні</div>
           <div class="stat-sub" data-i18n="popup.stat.critical_sub">Виправити негайно</div>
         </div>
         <div class="stat-num" id="stat-num-critical">0</div>
       </div>
-      <div class="stat-card wr" data-sev="warning">
+      <div class="stat-card wr" data-sev="warning" role="button" tabindex="0">
         <div class="stat-card-info">
           <div class="stat-lbl" data-i18n="popup.sev.warning">Попередження</div>
           <div class="stat-sub" data-i18n="popup.stat.warning_sub">Слід виправити</div>
         </div>
         <div class="stat-num" id="stat-num-warning">0</div>
       </div>
-      <div class="stat-card nt" data-sev="notice">
+      <div class="stat-card nt" data-sev="notice" role="button" tabindex="0">
         <div class="stat-card-info">
           <div class="stat-lbl" data-i18n="popup.sev.notice">Нотатки</div>
           <div class="stat-sub" data-i18n="popup.stat.notice_sub">Варто розглянути</div>
@@ -95,7 +104,7 @@
 
             <div id="sidebar-pinned-section" class="hidden"></div>
 
-            <button class="sidebar-group" data-group="seo">
+            <button class="sidebar-group" data-group="seo" aria-expanded="true" aria-controls="group-items-seo">
                 <svg class="sidebar-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                 <span data-i18n="popup.sidebar.group.seo">SEO</span>
             </button>
@@ -120,7 +129,7 @@
                 <button class="sidebar-item" data-checker="ip_info" data-i18n="popup.sidebar.ip_info">IP / DNS</button>
             </div>
 
-            <button class="sidebar-group" data-group="content">
+            <button class="sidebar-group" data-group="content" aria-expanded="true" aria-controls="group-items-content">
                 <svg class="sidebar-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                 <span data-i18n="popup.sidebar.group.content">Контент</span>
             </button>
@@ -136,13 +145,12 @@
                 <button class="sidebar-item" data-checker="localization" data-i18n="popup.sidebar.localization">i18n</button>
             </div>
 
-            <button class="sidebar-group" data-group="technical">
+            <button class="sidebar-group" data-group="technical" aria-expanded="true" aria-controls="group-items-technical">
                 <svg class="sidebar-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                 <span data-i18n="popup.sidebar.group.technical">Технічне</span>
             </button>
             <div class="sidebar-group-items" id="group-items-technical">
                 <button class="sidebar-item" data-checker="techstack" data-i18n="popup.sidebar.techstack">Tech Stack</button>
-                <button class="sidebar-item" data-checker="performance" data-i18n="popup.sidebar.performance">Продуктивність</button>
                 <button class="sidebar-item" data-checker="vitals" data-i18n="popup.sidebar.vitals">Vitals</button>
                 <button class="sidebar-item" data-checker="third_party" data-i18n="popup.sidebar.third_party">Сторонні</button>
                 <button class="sidebar-item" data-checker="resource_hints" data-i18n="popup.sidebar.resource_hints">Підказки</button>
@@ -154,7 +162,7 @@
                 <button class="sidebar-item" data-checker="redirect_chain" data-i18n="popup.sidebar.redirect_chain">Redirects</button>
             </div>
 
-            <button class="sidebar-group" data-group="media">
+            <button class="sidebar-group" data-group="media" aria-expanded="true" aria-controls="group-items-media">
                 <svg class="sidebar-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                 <span data-i18n="popup.sidebar.group.media">Медіа</span>
             </button>
@@ -164,7 +172,7 @@
                 <button class="sidebar-item" data-checker="favicon" data-i18n="popup.sidebar.favicon">Favicon</button>
             </div>
 
-            <button class="sidebar-group" data-group="links">
+            <button class="sidebar-group" data-group="links" aria-expanded="true" aria-controls="group-items-links">
                 <svg class="sidebar-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                 <span data-i18n="popup.sidebar.group.links">Посилання</span>
             </button>
@@ -176,7 +184,7 @@
                 <button class="sidebar-item" data-checker="link_juice" data-i18n="popup.sidebar.link_juice">Link Equity</button>
             </div>
 
-            <button class="sidebar-group" data-group="comfort">
+            <button class="sidebar-group" data-group="comfort" aria-expanded="true" aria-controls="group-items-comfort">
                 <svg class="sidebar-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                 <span data-i18n="popup.sidebar.group.comfort">Зручність</span>
             </button>
@@ -199,18 +207,18 @@
 
         <!-- Severity filter bar -->
         <div id="filter-bar" class="hidden">
-            <div id="sev-filter" class="sev-filter-group">
-                <button class="sev-btn sev-info" data-sev="info" data-i18n="popup.sev.info">● Інфо</button>
-                <button class="sev-btn active" data-sev="all" data-i18n="popup.sev.all">Всі</button>
-                <button class="sev-btn sev-critical" data-sev="critical" data-i18n="popup.sev.critical">● Критичні</button>
-                <button class="sev-btn sev-warning" data-sev="warning" data-i18n="popup.sev.warning">● Попередження</button>
-                <button class="sev-btn sev-notice" data-sev="notice" data-i18n="popup.sev.notice">● Нотатки</button>
+            <div id="sev-filter" class="sev-filter-group" role="group">
+                <button class="sev-btn active" data-sev="all" aria-pressed="true" data-i18n="popup.sev.all">Всі</button>
+                <button class="sev-btn sev-critical" data-sev="critical" aria-pressed="false" data-i18n="popup.sev.critical">● Критичні</button>
+                <button class="sev-btn sev-warning" data-sev="warning" aria-pressed="false" data-i18n="popup.sev.warning">● Попередження</button>
+                <button class="sev-btn sev-notice" data-sev="notice" aria-pressed="false" data-i18n="popup.sev.notice">● Нотатки</button>
+                <button class="sev-btn sev-info" data-sev="info" aria-pressed="false" data-i18n="popup.sev.info">● Інфо</button>
             </div>
         </div>
 
-        <div class="content-tabs hidden">
-          <button class="c-tab active" data-tab="quick-wins" data-i18n="popup.tab.quick_wins">🎯 Quick Wins</button>
-          <button class="c-tab" data-tab="all-issues" data-i18n="popup.tab.all_issues">All Issues</button>
+        <div class="content-tabs hidden" role="tablist">
+          <button class="c-tab active" data-tab="quick-wins" role="tab" aria-selected="true" data-i18n="popup.tab.quick_wins">🎯 Quick Wins</button>
+          <button class="c-tab" data-tab="all-issues" role="tab" aria-selected="false" data-i18n="popup.tab.all_issues">All Issues</button>
         </div>
 
         <div id="results"></div>

@@ -209,17 +209,6 @@
         <section class="checker-group">
           <h2 class="group-title">Technical SEO</h2>
 
-          <label class="checker-row" for="toggle-performance">
-            <div class="checker-info">
-              <span class="checker-name">Performance</span>
-              <span class="checker-desc">TTFB, blocking scripts, Google Fonts, resource count</span>
-            </div>
-            <div class="toggle-wrap">
-              <input type="checkbox" id="toggle-performance" data-checker="performance" class="toggle-input" checked>
-              <span class="toggle-slider"></span>
-            </div>
-          </label>
-
           <label class="checker-row" for="toggle-vitals">
             <div class="checker-info">
               <span class="checker-name">Core Web Vitals</span>
@@ -597,43 +586,6 @@
             </div>
           </div>
 
-          <div class="params-cat-label">Performance</div>
-          <div class="param-row">
-            <span class="param-name">TTFB: warning threshold</span>
-            <div class="param-control">
-              <input type="number" id="p-ttfb_warning" data-param="ttfb_warning" min="50" max="5000">
-              <span class="param-unit">ms</span>
-            </div>
-          </div>
-          <div class="param-row">
-            <span class="param-name">TTFB: critical threshold</span>
-            <div class="param-control">
-              <input type="number" id="p-ttfb_critical" data-param="ttfb_critical" min="100" max="10000">
-              <span class="param-unit">ms</span>
-            </div>
-          </div>
-          <div class="param-row">
-            <span class="param-name">DOMContentLoaded: threshold</span>
-            <div class="param-control">
-              <input type="number" id="p-dcl_warning" data-param="dcl_warning" min="500" max="30000">
-              <span class="param-unit">ms</span>
-            </div>
-          </div>
-          <div class="param-row">
-            <span class="param-name">Page load time: threshold</span>
-            <div class="param-control">
-              <input type="number" id="p-load_warning" data-param="load_warning" min="500" max="60000">
-              <span class="param-unit">ms</span>
-            </div>
-          </div>
-          <div class="param-row">
-            <span class="param-name">Max &lt;script&gt; tags</span>
-            <div class="param-control">
-              <input type="number" id="p-max_scripts" data-param="max_scripts" min="1" max="200">
-              <span class="param-unit">count</span>
-            </div>
-          </div>
-
           <div class="params-cat-label">Core Web Vitals</div>
           <div class="param-row">
             <span class="param-name">LCP: warning threshold</span>
@@ -763,7 +715,7 @@
     </main>
 
     <footer class="footer">
-      SEOInspector v1.0 — Real-time SEO audit
+      SEOInspector v2.2.0 — Real-time SEO audit
     </footer>
   </div>
 
