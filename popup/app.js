@@ -308,33 +308,15 @@ function init() {
     PopupState.currentTabId = tab.id;
     PopupState.currentTabTitle = tab.title || '';
 
-    // Load per-domain target keyword and muted issue types before first analysis
     var domain = getDomain(PopupState.currentTabUrl);
     chrome.storage.local.get({ targetKeywords: {}, mutedIssues: {} }, function(d) {
       PopupState.targetKeyword = (d.targetKeywords || {})[domain] || '';
       PopupState.mutedTypes = {};
       ((d.mutedIssues || {})[domain] || []).forEach(function(t) { PopupState.mutedTypes[t] = true; });
 
-      var kwBar = document.getElementById('kw-bar');
-      var kwInput = document.getElementById('target-keyword');
-      if (kwBar && kwInput) {
-        kwBar.classList.remove('hidden');
-        kwInput.value = PopupState.targetKeyword;
-        kwInput.placeholder = T.t('popup.kw.placeholder');
-        kwInput.title = T.t('popup.kw.title');
-      }
-
       analyzeTab(tab.id);
     });
   });
-
-  // Target keyword — apply on Enter or button click
-  var kwApplyInput = document.getElementById('target-keyword');
-  var kwApplyBtn = document.getElementById('btn-kw-apply');
-  if (kwApplyInput) kwApplyInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') applyTargetKeyword();
-  });
-  if (kwApplyBtn) kwApplyBtn.addEventListener('click', applyTargetKeyword);
 
   // Sidebar navigation
   document.querySelectorAll('.sidebar-item:not(.sidebar-pinned-clone)').forEach(function(btn) {
@@ -453,11 +435,6 @@ function init() {
       document.documentElement.lang = newLocale;
       T.applyTranslations();
       initPinnedSection(currentPinnedIds);
-      var kwInputLang = document.getElementById('target-keyword');
-      if (kwInputLang) {
-        kwInputLang.placeholder = T.t('popup.kw.placeholder');
-        kwInputLang.title = T.t('popup.kw.title');
-      }
       if (PopupState.lastResults) {
         renderSummary(PopupState.lastResults);
         renderResults(PopupState.lastResults, PopupState.currentTab);
@@ -593,24 +570,6 @@ function init() {
   });
 }
 
-function applyTargetKeyword() {
-  var input = document.getElementById('target-keyword');
-  if (!input) return;
-  var kw = input.value.trim();
-  if (kw === (PopupState.targetKeyword || '')) return;
-  var domain = getDomain(PopupState.currentTabUrl);
-  if (!domain) return;
-  chrome.storage.local.get({ targetKeywords: {} }, function(d) {
-    var all = d.targetKeywords || {};
-    if (kw) all[domain] = kw;
-    else delete all[domain];
-    chrome.storage.local.set({ targetKeywords: all }, function() {
-      PopupState.targetKeyword = kw;
-      if (PopupState.currentTabId) analyzeTab(PopupState.currentTabId);
-    });
-  });
-}
-
 function initSidebarGroups(collapsedState) {
   collapsedState = collapsedState || {};
 
@@ -631,6 +590,21 @@ function initSidebarGroups(collapsedState) {
       group.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
       collapsedState[groupId] = isCollapsed;
       chrome.storage.local.set({ collapsedGroups: collapsedState });
+    });
+  });
+}
+
+function applyTargetKeyword(kw) {
+  if (kw === (PopupState.targetKeyword || '')) return;
+  var domain = getDomain(PopupState.currentTabUrl);
+  if (!domain) return;
+  chrome.storage.local.get({ targetKeywords: {} }, function(d) {
+    var all = d.targetKeywords || {};
+    if (kw) all[domain] = kw;
+    else delete all[domain];
+    chrome.storage.local.set({ targetKeywords: all }, function() {
+      PopupState.targetKeyword = kw;
+      if (PopupState.currentTabId) analyzeTab(PopupState.currentTabId);
     });
   });
 }

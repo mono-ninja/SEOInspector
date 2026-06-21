@@ -158,6 +158,47 @@ function renderResults(results, activeTab) {
   var container = document.getElementById('results');
   container.innerHTML = '';
 
+  // Target keyword input for NLP / Content Quality tabs
+  if (activeTab === 'nlp' || activeTab === 'content_quality') {
+    var kwBar = document.createElement('div');
+    kwBar.className = 'kw-inline-bar';
+
+    var kwIcon = document.createElement('span');
+    kwIcon.className = 'kw-inline-icon';
+    kwIcon.textContent = '\uD83D\uDD11';
+    kwBar.appendChild(kwIcon);
+
+    var kwInput = document.createElement('input');
+    kwInput.type = 'text';
+    kwInput.className = 'kw-inline-input';
+    kwInput.value = PopupState.targetKeyword || '';
+    kwInput.placeholder = T.t('popup.kw.placeholder');
+    kwInput.title = T.t('popup.kw.title');
+    kwInput.autocomplete = 'off';
+    kwInput.spellcheck = false;
+    kwBar.appendChild(kwInput);
+
+    var kwBtn = document.createElement('button');
+    kwBtn.type = 'button';
+    kwBtn.className = 'kw-inline-btn';
+    kwBtn.textContent = '\u2192';
+    kwBtn.title = T.t('popup.kw.apply');
+    kwBar.appendChild(kwBtn);
+
+    container.appendChild(kwBar);
+
+    (function(input, btn) {
+      function submit() {
+        var kw = input.value.trim();
+        if (typeof applyTargetKeyword === 'function') applyTargetKeyword(kw);
+      }
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') submit();
+      });
+      btn.addEventListener('click', submit);
+    })(kwInput, kwBtn);
+  }
+
   var source = activeTab === 'all' ? results : results.filter(function(r) { return r.id === activeTab; });
 
   // Placeholder filled by applyIssueFilter when nothing is visible
